@@ -3,6 +3,7 @@ from sqlalchemy import create_engine, MetaData, select, and_
 from configparser import ConfigParser
 import datetime
 import asyncio
+import os
 
 client = discord.Client()
 
@@ -89,7 +90,7 @@ async def background_task():
         await asyncio.sleep(60)
 
 config = ConfigParser()
-config.read('config.ini')
+config.read(os.path.join('..', 'config.ini'))
 conf = {
     'mysql': {
         'user': config.get('mysql', 'user'),
