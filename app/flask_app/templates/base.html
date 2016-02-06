@@ -7,7 +7,11 @@
 <body>
 <script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
 <script src="https://code.highcharts.com/highcharts.js"></script>
-Hi!
+Hi!<br/>
+Current games:<br/>
+{% for game, players in current_games.items() %}
+    {{ game }} - {{ players }} player(s)<br/>
+{% endfor %}
 <div id="top_games_by_play_time"></div>
 <div id="top_games_by_user_count"></div>
 

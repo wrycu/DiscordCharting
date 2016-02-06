@@ -11,7 +11,10 @@ discord_charting = Blueprint(
 
 @discord_charting.route('/', methods=['GET'])
 def landing():
-    return render_template('base.html')
+    return render_template(
+        'base.html',
+        current_games=games_currently_being_played()
+    )
 
 
 @discord_charting.route('/global/top_games_by_play_time', methods=['GET'])
@@ -74,11 +77,24 @@ def top_games_by_user_count():
     return Response(json.dumps(top_games), mimetype='application/json')
 
 
-
-
-@discord_charting.route('/global/games_currently_being_played', methods=['GET'])
 def games_currently_being_played():
-    pass
+    stats = {}
+    results = select([
+        config.STATS_TABLE.c.gameId,
+        config.GAMES_TABLE.c.name,
+    ]).select_from(
+        config.STATS_TABLE.join(
+            config.GAMES_TABLE,
+            config.GAMES_TABLE.c.id == config.STATS_TABLE.c.gameId
+        )
+    ).where(
+        config.STATS_TABLE.c.endTime == None
+    ).execute().fetchall()
+    for result in results:
+        if result['name'] not in stats:
+            stats[result['name']] = 0
+        stats[result['name']] += 1
+    return stats
 
 
 @discord_charting.route('/global/top_active_time_of_day', methods=['GET'])
