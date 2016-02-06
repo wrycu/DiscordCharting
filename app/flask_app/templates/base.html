@@ -1,10 +1,54 @@
-<!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
 </head>
 <body>
+<script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
 Hi!
+<div id="top_games_by_play_time"></div>
+
+<script>
+$(function () {
+    var processed_json = new Array();
+    $.getJSON('http://127.0.0.1:9090/global/top_games_by_play_time', function(data) {
+        console.log(data);
+        // Populate series
+        $('#top_games_by_play_time').highcharts({
+            chart: {
+                type: 'column'
+            },
+            title: {
+                text: 'Top 5 played games'
+            },
+            subtitle: {
+                text: 'by combined gametime'
+            },
+            xAxis: {
+                title: {
+                    text: 'Game'
+                }
+            },
+            yAxis: {
+                title: {
+                    text: 'Time in game'
+                }
+            },
+            tooltip: {
+
+            },
+            plotOptions: {
+                column: {
+                    pointPadding: 0.2,
+                    borderWidth: 0
+                }
+            },
+            series: data
+        });
+    });
+});
+</script>
 </body>
 </html>
