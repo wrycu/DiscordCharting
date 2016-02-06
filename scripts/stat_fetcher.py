@@ -36,14 +36,19 @@ async def background_task():
 
         members = client.get_all_members()
         now = datetime.datetime.now()
+        # check to see if we've seen this member before or not
         for member in members:
             if int(member.id) not in known_members:
+                # add them to our list of members if they're new
                 members_table.insert({'id': member.id, 'username': member.name, 'firstSeen': now}).execute()
-            if member.game:
+            # if the user is in a game and not afk, we're interested want to make sure we're keeping statistics
+            if member.game and not member.is_afk:
                 the_game = str(member.game).lower()
+                # if we've never seen this game before, add it to the list of games
                 if the_game not in known_games:
                     game_id = games_table.insert({'name': the_game, 'firstUser': member.id, 'firstSeen': now}).execute().inserted_primary_key
                     known_games[the_game] = game_id
+                # if we have seen this game before, grab entries for this user where there is no end time
                 else:
                     game_id = known_games[the_game]
                 num_entries = len(
@@ -61,16 +66,20 @@ async def background_task():
                         )
                     ).execute().fetchall()
                 )
+                # if there are no entries with no end time, then this user just started playing
                 if num_entries == 0:
                     stats_table.insert({
                         'gameId': game_id,
                         'userId': member.id,
                         'startTime': now,
                     }).execute()
+                # if there is more than 1 entry, we haven't cleaned up after ourselves nicely...
                 elif num_entries > 1:
                     # oh dear something went wrong
                     print("Something went wrong, bubs. User", member.name, "|", member.game)
+            # this user is either not in game or they have gone afk
             else:
+                # we want to figure out what game they were playing so we can set an end time
                 entries = select([
                     stats_table.c.id
                 ]).where(
@@ -79,14 +88,17 @@ async def background_task():
                         stats_table.c.endTime == None,
                     )
                 ).execute().fetchall()
+                # if they only have one entry with no end time, then set the end time for that game
                 if len(entries) == 1:
                     stats_table.update(
                         stats_table.c.id == entries[0][0],
                         {'endTime': now}
                     ).execute()
+                # if there are multiple entries with no end time, then we didn't clean up after ourselves at some point
                 elif len(entries) > 1:
                     # oh dear something went wrong
                     print("Something went wrong, bubs. User", member.name, "|", member.game)
+        # wait 60 seconds before polling discord again
         await asyncio.sleep(60)
 
 config = ConfigParser()
