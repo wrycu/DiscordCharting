@@ -30,18 +30,18 @@ class ChartingDao:
 
     def get_count_active_stats_for_user_and_game(self, user_id, game_name):
         return select([
-                    func.count(self.stats_table.c.id)
+            func.count(self.stats_table.c.id)
+        ]).where(
+            and_(
+                self.stats_table.c.userId == user_id,
+                self.stats_table.c.gameId == select([
+                    self.games_table.c.id
                 ]).where(
-                    and_(
-                        self.stats_table.c.userId == user_id,
-                        self.stats_table.c.gameId == select([
-                            self.games_table.c.id
-                        ]).where(
-                            self.games_table.c.name == game_name
-                        ).execute().fetchone()[0],
-                        self.stats_table.c.endTime == None,  # sqlalchemy doesn't like the 'is' operator so we'll use ==
-                    )
-                ).execute().fetchall()
+                    self.games_table.c.name == game_name
+                ).execute().fetchone()[0],
+                self.stats_table.c.endTime == None,  # sqlalchemy doesn't like the 'is' operator so we'll use ==
+            )
+        ).execute().fetchall()[0][0]
 
     def insert_statistic(self, user_id, game_id, start_time):
         self.stats_table.insert({
