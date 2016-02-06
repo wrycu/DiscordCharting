@@ -1,6 +1,7 @@
 import discord
-from sqlalchemy import create_engine, MetaData, select, and_
+from sqlalchemy import create_engine, MetaData
 from configparser import ConfigParser
+from scripts.charting_dao import ChartingDao
 import datetime
 import asyncio
 import os
@@ -11,82 +12,60 @@ client = discord.Client()
 @client.event
 async def on_ready():
     # TODO: migrate the background_task code to a function so we can call from here or there
-    pass
+    print("Ready to poll")
 
 async def background_task():
     await client.wait_until_ready()
     while not client.is_closed:
-        members_table = discord_meta.tables['users']
-        games_table = discord_meta.tables['games']
-        stats_table = discord_meta.tables['statistics']
-        raw_known_members = select([
-            members_table.c.id
-        ]).execute().fetchall()
+        charting_dao = ChartingDao(discord_meta)
+        raw_known_members = charting_dao.get_known_members()
         known_members = []
         for member in raw_known_members:
             known_members.append(member[0])
 
-        raw_known_games = select([
-            games_table.c.id,
-            games_table.c.name
-        ]).execute().fetchall()
+        raw_known_games = charting_dao.get_known_games()
         known_games = {}
         for game in raw_known_games:
             known_games[game[1]] = game[0]
 
         members = client.get_all_members()
         now = datetime.datetime.now()
+        # check to see if we've seen this member before or not
         for member in members:
             if int(member.id) not in known_members:
-                members_table.insert({'id': member.id, 'username': member.name, 'firstSeen': now}).execute()
-            if member.game:
+                # add them to our list of members if they're new
+                charting_dao.insert_new_member(member.id, member.name, now)
+            # if the user is in a game and not afk, we're interested want to make sure we're keeping statistics
+            if member.game and not member.is_afk:
                 the_game = str(member.game).lower()
+                # if we've never seen this game before, add it to the list of games
                 if the_game not in known_games:
-                    game_id = games_table.insert({'name': the_game, 'firstUser': member.id, 'firstSeen': now}).execute().inserted_primary_key
+                    game_id = charting_dao.insert_new_game_and_get_id(the_game, member.name, now)
                     known_games[the_game] = game_id
+                # if we have seen this game before, grab entries for this user where there is no end time
                 else:
                     game_id = known_games[the_game]
-                num_entries = len(
-                    select([
-                        stats_table.c.id
-                    ]).where(
-                        and_(
-                            stats_table.c.userId == member.id,
-                            stats_table.c.gameId == select([
-                                games_table.c.id
-                            ]).where(
-                                games_table.c.name == the_game
-                            ).execute().fetchone()[0],
-                            stats_table.c.endTime == None,
-                        )
-                    ).execute().fetchall()
-                )
+                num_entries = charting_dao.get_count_active_stats_for_user_and_game(member.id, the_game)
+
+                # if there are no entries with no end time, then this user just started playing
                 if num_entries == 0:
-                    stats_table.insert({
-                        'gameId': game_id,
-                        'userId': member.id,
-                        'startTime': now,
-                    }).execute()
+                    charting_dao.insert_statistic(member.id, game_id, now)
+                # if there is more than 1 entry, we haven't cleaned up after ourselves nicely...
                 elif num_entries > 1:
                     # oh dear something went wrong
                     print("Something went wrong, bubs. User", member.name, "|", member.game)
+            # this user is either not in game or they have gone afk
             else:
-                entries = select([
-                    stats_table.c.id
-                ]).where(
-                    and_(
-                        stats_table.c.userId == member.id,
-                        stats_table.c.endTime == None,
-                    )
-                ).execute().fetchall()
+                # we want to figure out what game they were playing so we can set an end time
+                entries = charting_dao.get_active_games_for_user(member.id)
+                # if they only have one entry with no end time, then set the end time for that game
                 if len(entries) == 1:
-                    stats_table.update(
-                        stats_table.c.id == entries[0][0],
-                        {'endTime': now}
-                    ).execute()
+                    charting_dao.update_end_time_for_stat(entries[0][0], now)
+                # if there are multiple entries with no end time, then we didn't clean up after ourselves at some point
                 elif len(entries) > 1:
                     # oh dear something went wrong
                     print("Something went wrong, bubs. User", member.name, "|", member.game)
+        # wait 60 seconds before polling discord again
         await asyncio.sleep(60)
 
 config = ConfigParser()
