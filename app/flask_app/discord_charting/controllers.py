@@ -46,7 +46,34 @@ def top_games_by_play_time():
 
 @discord_charting.route('/global/top_games_by_user_count', methods=['GET'])
 def top_games_by_user_count():
-    pass
+    stats = {}
+    game_mapping = {}
+    results = select([
+        config.STATS_TABLE.c.gameId,
+        config.STATS_TABLE.c.userId,
+        config.GAMES_TABLE.c.name,
+    ]).select_from(
+        config.STATS_TABLE.join(
+            config.GAMES_TABLE,
+            config.GAMES_TABLE.c.id == config.STATS_TABLE.c.gameId
+        )
+    ).where(
+        config.STATS_TABLE.c.endTime != None
+    ).execute().fetchall()
+    for result in results:
+        if result['gameId'] not in stats:
+            game_mapping[result['gameId']] = result['name']
+            stats[result['gameId']] = []
+        if result['userId'] not in stats[result['gameId']]:
+            stats[result['gameId']].append(result['userId'])
+    raw_top_games = sorted(stats, key=stats.get, reverse=True)[:5]
+
+    top_games = []
+    for game in raw_top_games:
+        top_games.append({'name': game_mapping[game], 'data': [len(stats[game])]})
+    return Response(json.dumps(top_games), mimetype='application/json')
+
+
 
 
 @discord_charting.route('/global/games_currently_being_played', methods=['GET'])

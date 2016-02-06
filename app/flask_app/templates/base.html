@@ -9,10 +9,10 @@
 <script src="https://code.highcharts.com/highcharts.js"></script>
 Hi!
 <div id="top_games_by_play_time"></div>
+<div id="top_games_by_user_count"></div>
 
 <script>
 $(function () {
-    var processed_json = new Array();
     $.getJSON('http://127.0.0.1:9090/global/top_games_by_play_time', function(data) {
         console.log(data);
         // Populate series
@@ -34,6 +34,41 @@ $(function () {
             yAxis: {
                 title: {
                     text: 'Time in game'
+                }
+            },
+            tooltip: {
+
+            },
+            plotOptions: {
+                column: {
+                    pointPadding: 0.2,
+                    borderWidth: 0
+                }
+            },
+            series: data
+        });
+    });
+    $.getJSON('http://127.0.0.1:9090/global/top_games_by_user_count', function(data) {
+        console.log(data);
+        // Populate series
+        $('#top_games_by_user_count').highcharts({
+            chart: {
+                type: 'column'
+            },
+            title: {
+                text: 'Top 5 played games'
+            },
+            subtitle: {
+                text: 'by unique players'
+            },
+            xAxis: {
+                title: {
+                    text: 'Game'
+                }
+            },
+            yAxis: {
+                title: {
+                    text: 'Users who have played game'
                 }
             },
             tooltip: {
