@@ -1,2 +1,4 @@
+sqlalchemy
 flask
 requests
+git+https://github.com/Rapptz/discord.py.git
