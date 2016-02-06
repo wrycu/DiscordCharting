@@ -17,6 +17,8 @@ async def on_ready():
 async def background_task():
     await client.wait_until_ready()
     while not client.is_closed:
+        now = datetime.datetime.now()
+        print("Polling at", now)
         charting_dao = ChartingDao(discord_meta)
         raw_known_members = charting_dao.get_known_members()
         known_members = []
@@ -29,18 +31,21 @@ async def background_task():
             known_games[game[1]] = game[0]
 
         members = client.get_all_members()
-        now = datetime.datetime.now()
         # check to see if we've seen this member before or not
         for member in members:
             if int(member.id) not in known_members:
                 # add them to our list of members if they're new
                 charting_dao.insert_new_member(member.id, member.name, now)
-            # if the user is in a game and not afk, we're interested want to make sure we're keeping statistics
-            if member.game and not member.is_afk:
+            if member.status == discord.Status.idle:
+                is_afk = True
+            else:
+                is_afk = False
+            # if the user is in a game and not afk, we're interested
+            if member.game and not is_afk:
                 the_game = str(member.game).lower()
                 # if we've never seen this game before, add it to the list of games
                 if the_game not in known_games:
-                    game_id = charting_dao.insert_new_game_and_get_id(the_game, member.name, now)
+                    game_id = charting_dao.insert_new_game_and_get_id(the_game, member.id, now)
                     known_games[the_game] = game_id
                 # if we have seen this game before, grab entries for this user where there is no end time
                 else:
