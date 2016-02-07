@@ -19,9 +19,13 @@ class ChartingDao:
         :return:
             A list of all member IDs
         """
-        return select([
+        members = []
+        results = select([
             self.members_table.c.id,
         ]).execute().fetchall()
+        for result in results:
+            members.append(result[0])
+        return members
 
     def member_exists(self, user_id):
         """
