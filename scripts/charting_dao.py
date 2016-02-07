@@ -156,7 +156,7 @@ class ChartingDao:
         )
         for stat_id in stat_ids:
             self.stats_table.update(
-                self.stats_table.c.id == stat_id,
+                self.stats_table.c.id == stat_id[1],
                 {
                     'endTime': end_time,
                 }
