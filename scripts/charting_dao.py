@@ -31,16 +31,14 @@ class ChartingDao:
         :return:
             Bool indicating if the user exists
         """
-        if len(
-            select([
+        if select([
                 self.members_table.c.id
-            ]).where(
-                self.members_table.c.id == user_id
-            ).execute().fetchall()
-        ) == 0:
-            return False
-        else:
+        ]).where(
+            self.members_table.c.id == user_id
+        ).execute().fetchall():
             return True
+        else:
+            return False
 
     def create_member(self, user_id, username, first_seen, realname=None):
         """
@@ -140,7 +138,7 @@ class ChartingDao:
             {'endTime': end_time}
         ).execute()
 
-    def close_stats(self, user_id, end_time):
+    def close_stats(self, user_id, current_game, end_time):
         """
         Adds an endtime to all games a user is playing, marking that game as no longer being played
         Note that you can invoke "close_stat" to close a single entry
@@ -151,16 +149,20 @@ class ChartingDao:
         :return:
             N/A
         """
+        game_id = self.get_game_id(
+            current_game
+        )
         stat_ids = self.get_stats(
             user_id,
         )
         for stat_id in stat_ids:
-            self.stats_table.update(
-                self.stats_table.c.id == stat_id[1],
-                {
-                    'endTime': end_time,
-                }
-            ).execute()
+            if stat_id[0] != game_id:
+                self.stats_table.update(
+                    self.stats_table.c.id == stat_id[1],
+                    {
+                        'endTime': end_time,
+                    }
+                ).execute()
 
     def create_stat(self, user_id, game_name, start_time):
         """
@@ -177,6 +179,8 @@ class ChartingDao:
         """
         entries = self.get_stats(user_id)
         if len(entries) > 0:
+            if len(entries) > 1:
+                print("Uh oh", user_id, "had more than one game open! Detected while creating stats for", game_name)
             for entry in entries:
                 self.close_stat(entry[1], start_time)
 
