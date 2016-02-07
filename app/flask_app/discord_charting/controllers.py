@@ -2,6 +2,8 @@ from sqlalchemy import select, and_
 from flask import Blueprint, render_template, Response
 from app import config
 import json
+from datetime import timedelta
+import collections
 
 discord_charting = Blueprint(
     'discord_charting',
@@ -99,8 +101,37 @@ def games_currently_being_played():
 
 @discord_charting.route('/global/top_active_time_of_day', methods=['GET'])
 def top_active_time_of_day():
-    pass
+    results = select([
+        config.STATS_TABLE.c.userId,
+        config.STATS_TABLE.c.startTime,
+        config.STATS_TABLE.c.endTime,
+    ]).where(
+        config.STATS_TABLE.c.endTime != None
+    ).execute().fetchall()
 
+    # HourEachDay -> [userId]
+    hour_map = {}
+    for result in results:
+        current_time = result['startTime'].replace(minute=0, second=0, microsecond=0)
+        end_time = result['endTime'].replace(minute=0, second=0, microsecond=0)
+        while current_time < end_time:
+            if hour_map.get(current_time) is None:
+                hour_map[current_time] = []
+            if result['userId'] not in hour_map[current_time]:
+                hour_map[current_time].append(result['userId'])
+
+            current_time += timedelta(hours=1)
+
+    stats = [0] * 24
+    for hour, users in hour_map.items():
+        stats[hour.hour] += len(users)
+
+    # convert stats for highcharts
+    final_stats = []
+    for hour in range(0, 24):
+        final_stats.append({'name': str(hour) + ':00 - ' + str(hour + 1) + ':00', 'data': [stats[hour]]})
+
+    return Response(json.dumps(final_stats), mimetype='application/json')
 
 @discord_charting.route('/global/game_user_count_over_time', methods=['GET'])
 def game_user_count_over_time():

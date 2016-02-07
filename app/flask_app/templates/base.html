@@ -14,6 +14,7 @@ Current games:<br/>
 {% endfor %}
 <div id="top_games_by_play_time"></div>
 <div id="top_games_by_user_count"></div>
+<div id="top_active_time_of_day"></div>
 
 <script>
 $(function () {
@@ -73,6 +74,39 @@ $(function () {
             yAxis: {
                 title: {
                     text: 'Users who have played game'
+                }
+            },
+            tooltip: {
+
+            },
+            plotOptions: {
+                column: {
+                    pointPadding: 0.2,
+                    borderWidth: 0
+                }
+            },
+            series: data
+        });
+    });
+
+     $.getJSON('http://127.0.0.1:9090/global/top_active_time_of_day', function(data) {
+        console.log(data);
+        // Populate series
+        $('#top_active_time_of_day').highcharts({
+            chart: {
+                type: 'column'
+            },
+            title: {
+                text: 'Hourly Activity'
+            },
+            xAxis: {
+                title: {
+                    text: 'hour'
+                }
+            },
+            yAxis: {
+                title: {
+                    text: 'Active users'
                 }
             },
             tooltip: {
