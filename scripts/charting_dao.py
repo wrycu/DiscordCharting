@@ -80,7 +80,7 @@ class ChartingDao:
             Name of the game to look up
         :return:
             ID of the game, if it exists
-            False if it does not
+            None if it does not
         """
         return select([
             self.games_table.c.id
@@ -92,7 +92,7 @@ class ChartingDao:
         """
         Creates a new game for tracking stats against
         :param name:
-            Name of the game.  Note that this is currently expected to be lowercase
+            Name of the game.
         :param first_user:
             The ID of the user who was first seen playing this game
         :param first_seen:
