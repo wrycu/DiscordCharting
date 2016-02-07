@@ -28,21 +28,20 @@ async def background_task():
             if member.id not in known_members:
                 # add them to our list of members if they're new
                 charting_dao.create_member(member.id, str(member.name), now)
-            if member.status == discord.Status.idle:
-                is_afk = True
-            else:
-                is_afk = False
+
+            is_afk = member.status == discord.Status.idle
             entries = charting_dao.get_stats(member.id)
-            if len(entries) > 0 and is_afk:
-                # The user is AFK and we think they're playing at least one game. close 'em up!
+            if is_afk:
+                # The user is AFK. close up any games they were playing
                 for entry in entries:
-                    charting_dao.close_stat(entry[1], now)
+                    charting_dao.close_stat(entry['id'], now)
                 # We're done here. they're AFK
-                continue
-            if member.game and not is_afk:
-                charting_dao.create_stat(member.id, str(member.game), now)
-            elif not member.game:
-                charting_dao.close_stats(member.id, str(member.game), now)
+            else:
+                if member.game:
+                    charting_dao.create_stat(member.id, str(member.game), now)
+                else:
+                    charting_dao.close_stats(member.id, str(member.game), now)
+
         # wait 60 seconds before polling discord again
         await asyncio.sleep(60)
 
