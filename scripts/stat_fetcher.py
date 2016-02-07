@@ -20,18 +20,8 @@ async def background_task():
         now = datetime.datetime.now()
         print("Polling at", now)
         charting_dao = ChartingDao(discord_meta)
-
-        raw_known_members = charting_dao.get_members()
-        known_members = []
-        for member in raw_known_members:
-            known_members.append(member[0])
-
-        raw_known_games = charting_dao.get_games()
-        known_games = {}
-        for game in raw_known_games:
-            known_games[game[1]] = game[0]
-
         members = client.get_all_members()
+
         # check to see if we've seen this member before or not
         for member in members:
             if not charting_dao.member_exists(member.id):
@@ -51,7 +41,7 @@ async def background_task():
             if member.game and not is_afk:
                 charting_dao.create_stat(member.id, str(member.game), now)
             elif not member.game:
-                charting_dao.close_stats(member.id, now)
+                charting_dao.close_stats(member.id, str(member.game), now)
         # wait 60 seconds before polling discord again
         await asyncio.sleep(60)
 
