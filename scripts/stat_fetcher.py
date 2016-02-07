@@ -21,10 +21,11 @@ async def background_task():
         print("Polling at", now)
         charting_dao = ChartingDao(discord_meta)
         members = client.get_all_members()
+        known_members = charting_dao.get_members()
 
         # check to see if we've seen this member before or not
         for member in members:
-            if not charting_dao.member_exists(member.id):
+            if member.id not in known_members:
                 # add them to our list of members if they're new
                 charting_dao.create_member(member.id, str(member.name), now)
             if member.status == discord.Status.idle:
