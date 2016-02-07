@@ -35,7 +35,7 @@ class ChartingDao:
                 self.members_table.c.id
         ]).where(
             self.members_table.c.id == user_id
-        ).execute().fetchall():
+        ).execute().fetchone():
             return True
         else:
             return False
