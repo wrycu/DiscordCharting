@@ -160,9 +160,9 @@ class ChartingDao:
             user_id,
         )
         for stat_id in stat_ids:
-            if stat_id[0] != game_id:
+            if stat_id['gameId'] != game_id:
                 self.stats_table.update(
-                    self.stats_table.c.id == stat_id[1],
+                    self.stats_table.c.id == stat_id['id'],
                     {
                         'endTime': end_time,
                     }
