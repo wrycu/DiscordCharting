@@ -71,7 +71,7 @@ def top_games_by_user_count():
             stats[result['gameId']] = []
         if result['userId'] not in stats[result['gameId']]:
             stats[result['gameId']].append(result['userId'])
-    raw_top_games = sorted(stats, key=stats.get, reverse=True)[:5]
+    raw_top_games = sorted(stats, key=lambda k: len(stats[k]), reverse=True)[:5]
 
     top_games = []
     for game in raw_top_games:
