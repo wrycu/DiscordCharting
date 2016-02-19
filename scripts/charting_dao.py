@@ -175,24 +175,30 @@ class ChartingDao:
         :param user_id:
             ID of the user playing the game
         :param game_name:
-            ID of the game the user is playing
+            Name of the game the user is playing
         :param start_time:
             The time at which this user started playing this game
         :return:
             N/A
         """
         entries = self.get_stats(user_id)
-        if len(entries) > 0:
-            if len(entries) > 1:
-                print("Uh oh", user_id, "had more than one game open! Detected while creating stats for", game_name)
-            for entry in entries:
-                self.close_stat(entry[1], start_time)
-
         game_id = self.get_game_id(game_name)
         if not game_id:
             game_id = self.create_game(game_name, user_id, start_time)
         else:
             game_id = game_id[0]
+
+        if len(entries) > 0:
+            if len(entries) > 1:
+                print("Uh oh", user_id, "had more than one game open! Detected while creating stats for", game_name)
+            for entry in entries:
+                if entry[0] != game_id:
+                    self.close_stat(entry[1], start_time)
+                else:
+                    # The game they're currently playing is the same as the game we're currently tracking
+                    # Don't do anything
+                    return
+
         self.stats_table.insert({
             'gameId': game_id,
             'userId': user_id,
