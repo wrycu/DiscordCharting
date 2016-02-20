@@ -113,14 +113,20 @@ def top_active_time_of_day():
     for result in results:
         current_time = result['startTime'].replace(minute=0, second=0, microsecond=0)
         end_time = result['endTime'].replace(minute=0, second=0, microsecond=0)
+
+        # loop from start time to end time so we get a data point for each hour someone played a game
         while current_time <= end_time:
             if hour_map.get(current_time) is None:
                 hour_map[current_time] = []
+            # We don't want to count the same user in the same hour so make
+            # sure they haven't already been accounted for in our map
             if result['userId'] not in hour_map[current_time]:
                 hour_map[current_time].append(result['userId'])
 
             current_time += timedelta(hours=1)
 
+    # We want to capture the number of people/hour AND the number of samples so that we
+    # can compute the average number of players for that hour
     # Hour -> (# People, # Samples)
     stats = [(0, 0)] * 24
     for hour, users in hour_map.items():
@@ -152,10 +158,14 @@ def game_user_count_over_time():
         config.STATS_TABLE.c.endTime != None
     ).execute().fetchall()
 
+    # We want to capture the number of unique players per game per hour
+    # Hour -> (Game -> [Players])
     hour_map = dict()
     for result in results:
         current_time = result['startTime'].replace(minute=0, second=0, microsecond=0)
         end_time = result['endTime'].replace(minute=0, second=0, microsecond=0)
+
+        # loop from start time to end time so we get a data point for each hour someone played a game
         while current_time <= end_time:
             if not hour_map.get(current_time):
                 hour_map[current_time] = dict()
@@ -170,6 +180,7 @@ def game_user_count_over_time():
         config.GAMES_TABLE.c.name
     ]).execute().fetchall()
 
+    # sort the times so that the resulting chart is a nice timeline
     times = sorted(list(hour_map.keys()))
     formatted_times = []
 
@@ -177,13 +188,19 @@ def game_user_count_over_time():
     for time in times:
         formatted_times.append(time.strftime('%Y-%m-%dT%H:00'))
 
+        # we want a metric for every game even if it hasn't been played within our timeframe
+        # so we loop over all known games here
         for game_row in known_games:
             game_name = game_row['name']
             if games.get(game_name) is None:
                 games[game_name] = []
+            # if there were no players, we make sure to default to 0
             games[game_name].append(len(hour_map[time].get(game_name, [])))
     game_series = []
     for game, data in games.items():
+        # make sure all lines are set to invisible since we presumably have a ton of
+        # games to display and we don't want to crowd the graph
+        # TODO: Set the Top X games to be visible
         game_series.append({'name': game, 'data': data, 'visible': False})
 
     stats = {'times': formatted_times, 'games': game_series}
