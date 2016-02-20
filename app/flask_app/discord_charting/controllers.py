@@ -48,7 +48,6 @@ def top_games_by_play_time():
         top_games.append({'name': game_mapping[game], 'data': [stats[game]]})
     return Response(json.dumps(top_games), mimetype='application/json')
 
-
 @discord_charting.route('/global/top_games_by_user_count', methods=['GET'])
 def top_games_by_user_count():
     stats = {}
@@ -114,7 +113,7 @@ def top_active_time_of_day():
     for result in results:
         current_time = result['startTime'].replace(minute=0, second=0, microsecond=0)
         end_time = result['endTime'].replace(minute=0, second=0, microsecond=0)
-        while current_time < end_time:
+        while current_time <= end_time:
             if hour_map.get(current_time) is None:
                 hour_map[current_time] = []
             if result['userId'] not in hour_map[current_time]:
@@ -135,7 +134,56 @@ def top_active_time_of_day():
 
 @discord_charting.route('/global/game_user_count_over_time', methods=['GET'])
 def game_user_count_over_time():
-    pass
+    results = select([
+        config.STATS_TABLE.c.userId,
+        config.GAMES_TABLE.c.name.label('gameName'),
+        config.STATS_TABLE.c.startTime,
+        config.STATS_TABLE.c.endTime,
+    ]).select_from(
+        config.STATS_TABLE.join(
+            config.GAMES_TABLE,
+            config.STATS_TABLE.c.gameId == config.GAMES_TABLE.c.id
+        )
+    ).where(
+        config.STATS_TABLE.c.endTime != None
+    ).execute().fetchall()
+
+    hour_map = dict()
+    for result in results:
+        current_time = result['startTime'].replace(minute=0, second=0, microsecond=0)
+        end_time = result['endTime'].replace(minute=0, second=0, microsecond=0)
+        while current_time <= end_time:
+            if not hour_map.get(current_time):
+                hour_map[current_time] = dict()
+            if result['gameName'] not in hour_map[current_time]:
+                hour_map[current_time][result['gameName']] = []
+            if result['userId'] not in hour_map[current_time][result['gameName']]:
+                hour_map[current_time][result['gameName']].append(result['userId'])
+
+            current_time += timedelta(hours=1)
+
+    known_games = select([
+        config.GAMES_TABLE.c.name
+    ]).execute().fetchall()
+
+    times = sorted(list(hour_map.keys()))
+    formatted_times = []
+
+    games = dict()
+    for time in times:
+        formatted_times.append(time.strftime('%Y-%m-%dT%H:00'))
+
+        for game_row in known_games:
+            game_name = game_row['name']
+            if games.get(game_name) is None:
+                games[game_name] = []
+            games[game_name].append(len(hour_map[time].get(game_name, [])))
+    game_series = []
+    for game, data in games.items():
+        game_series.append({'name': game, 'data': data, 'visible': False})
+
+    stats = {'times': formatted_times, 'games': game_series}
+    return Response(json.dumps(stats), mimetype='application/json')
 
 
 @discord_charting.route('/global/total_games_played', methods=['GET'])

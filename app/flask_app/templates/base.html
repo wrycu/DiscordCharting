@@ -15,6 +15,7 @@ Current games:<br/>
 <div id="top_games_by_play_time"></div>
 <div id="top_games_by_user_count"></div>
 <div id="top_active_time_of_day"></div>
+<div id="game_user_count_over_time"></div>
 
 <script>
 $(function () {
@@ -119,6 +120,44 @@ $(function () {
                 }
             },
             series: data
+        });
+    });
+
+    $.getJSON('http://127.0.0.1:9090/global/game_user_count_over_time', function(data) {
+        console.log(data);
+        // Populate series
+        $('#game_user_count_over_time').highcharts({
+            title: {
+                text: 'User Count/Game',
+                x: -20 //center
+            },
+            subtitle: {
+                text: 'over time',
+                x: -20
+            },
+            xAxis: {
+                categories: data['times']
+            },
+            yAxis: {
+                title: {
+                    text: '# of players'
+                },
+                plotLines: [{
+                    value: 0,
+                    width: 1,
+                    color: '#808080'
+                }]
+            },
+            tooltip: {
+                valueSuffix: ' players'
+            },
+            legend: {
+                layout: 'vertical',
+                align: 'right',
+                verticalAlign: 'middle',
+                borderWidth: 0
+            },
+            series: data['games']
         });
     });
 });
