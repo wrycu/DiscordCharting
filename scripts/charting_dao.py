@@ -57,12 +57,17 @@ class ChartingDao:
             The person's IRL name.  Optional - not really used anywhere at the moment
         :return:
         """
-        self.members_table.insert({
-            'id': user_id,
-            'username': username,
-            'firstSeen': first_seen,
-            'realname': realname,
-        }).execute()
+        try:
+            self.members_table.insert({
+                'id': user_id,
+                'username': username,
+                'firstSeen': first_seen,
+                'realname': realname,
+            }).execute()
+        except:
+            # The user is already in the DB.  Print an error and add an underscore
+            print("[WARN] User", username, "seen after already being in the DB (ID", user_id, ")")
+            self.create_member(user_id, username + "_", first_seen, realname)
 
     def get_games(self):
         """
