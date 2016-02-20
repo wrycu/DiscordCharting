@@ -25,6 +25,13 @@ async def background_task():
 
         # check to see if we've seen this member before or not
         for member in members:
+            roles = []
+            for role in member.roles:
+                roles.append(str(role))
+            if 'member' not in roles:
+                # This person is not someone an admin has registered on the server
+                # We don't care about you, sir
+                continue
             if int(member.id) not in known_members:
                 # add them to our list of members if they're new
                 charting_dao.create_member(member.id, str(member.name), now)
