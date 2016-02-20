@@ -121,14 +121,18 @@ def top_active_time_of_day():
 
             current_time += timedelta(hours=1)
 
-    stats = [0] * 24
+    # Hour -> (# People, # Samples)
+    stats = [(0, 0)] * 24
     for hour, users in hour_map.items():
-        stats[hour.hour] += len(users)
+        stats[hour.hour] = (stats[hour.hour][0] + len(users), stats[hour.hour][1] + 1)
 
     # convert stats for highcharts
     final_stats = []
     for hour in range(0, 24):
-        final_stats.append({'name': str(hour) + ':00 - ' + str(hour + 1) + ':00', 'data': [stats[hour]]})
+        final_stats.append({
+            'name': str(hour) + ':00 - ' + str(hour + 1) + ':00',
+            'data': [stats[hour][0] / stats[hour][1]]
+        })
 
     return Response(json.dumps(final_stats), mimetype='application/json')
 
