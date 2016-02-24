@@ -16,10 +16,11 @@ Current games:<br/>
 <div id="top_games_by_user_count"></div>
 <div id="top_active_time_of_day"></div>
 <div id="game_user_count_over_time"></div>
+<div id="total_games_played"></div>
 
 <script>
 $(function () {
-    $.getJSON('http://127.0.0.1:9090/global/top_games_by_play_time', function(data) {
+    $.getJSON('{{ url_for('discord_charting.top_games_by_play_time') }}', function(data) {
         console.log(data);
         // Populate series
         $('#top_games_by_play_time').highcharts({
@@ -54,7 +55,7 @@ $(function () {
             series: data
         });
     });
-    $.getJSON('http://127.0.0.1:9090/global/top_games_by_user_count', function(data) {
+    $.getJSON('{{ url_for('discord_charting.top_games_by_user_count') }}', function(data) {
         console.log(data);
         // Populate series
         $('#top_games_by_user_count').highcharts({
@@ -90,7 +91,7 @@ $(function () {
         });
     });
 
-     $.getJSON('http://127.0.0.1:9090/global/top_active_time_of_day', function(data) {
+     $.getJSON('{{ url_for('discord_charting.top_active_time_of_day') }}', function(data) {
         console.log(data);
         // Populate series
         $('#top_active_time_of_day').highcharts({
@@ -123,7 +124,7 @@ $(function () {
         });
     });
 
-    $.getJSON('http://127.0.0.1:9090/global/game_user_count_over_time', function(data) {
+    $.getJSON('{{ url_for('discord_charting.game_user_count_over_time') }}', function(data) {
         console.log(data);
         // Populate series
         $('#game_user_count_over_time').highcharts({
@@ -150,6 +151,44 @@ $(function () {
             },
             tooltip: {
                 valueSuffix: ' players'
+            },
+            legend: {
+                layout: 'vertical',
+                align: 'right',
+                verticalAlign: 'middle',
+                borderWidth: 0
+            },
+            series: data['games']
+        });
+    });
+
+    $.getJSON('{{ url_for('discord_charting.total_games_played') }}', function(data) {
+        console.log(data);
+        // Populate series
+        $('#total_games_played').highcharts({
+            title: {
+                text: 'Total unique games played',
+                x: -20 //center
+            },
+            subtitle: {
+                text: 'over time',
+                x: -20
+            },
+            xAxis: {
+                categories: data['times']
+            },
+            yAxis: {
+                title: {
+                    text: '# of unique games'
+                },
+                plotLines: [{
+                    value: 0,
+                    width: 1,
+                    color: '#808080'
+                }]
+            },
+            tooltip: {
+                valueSuffix: ' games'
             },
             legend: {
                 layout: 'vertical',

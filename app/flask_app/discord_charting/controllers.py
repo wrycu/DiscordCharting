@@ -1,7 +1,8 @@
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, asc, desc
 from flask import Blueprint, render_template, Response
 from app import config
 import json
+import datetime
 from datetime import timedelta
 import collections
 
@@ -209,7 +210,38 @@ def game_user_count_over_time():
 
 @discord_charting.route('/global/total_games_played', methods=['GET'])
 def total_games_played():
-    pass
+    # get all of the stats, get the earliest game time seen, and chart from then in 1 day increments
+    stats = {}
+    times = []
+    total = 0
+
+    results = select([
+        config.GAMES_TABLE.c.name,
+        config.GAMES_TABLE.c.firstSeen,
+    ]).order_by(
+        asc(
+            config.GAMES_TABLE.c.firstSeen
+        )
+    ).execute().fetchall()
+
+    for result in results:
+        start = result['firstSeen'].strftime('%Y-%m-%d')
+        if start not in stats:
+            stats[start] = total
+            times.append(start)
+        stats[start] += 1
+        total += 1
+
+    # convert stats for highcharts
+    final_stats = {
+        'games': [{
+            'name': 'Unique games',
+            'data': sorted(list(stats.values()))
+        }],
+        'times': times,
+    }
+
+    return Response(json.dumps(final_stats), mimetype='application/json')
 
 
 @discord_charting.route('/global/top_active_users', methods=['GET'])
