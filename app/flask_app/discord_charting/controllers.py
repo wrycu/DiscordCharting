@@ -234,7 +234,9 @@ def total_games_played():
     results = select([
         config.GAMES_TABLE.c.name,
         config.GAMES_TABLE.c.firstSeen,
-    ]).order_by(
+    ]).where(
+        ~config.GAMES_TABLE.c.firstUser.in_(user_blacklist),
+    ).order_by(
         asc(
             config.GAMES_TABLE.c.firstSeen
         )
