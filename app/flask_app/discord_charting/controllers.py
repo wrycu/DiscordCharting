@@ -11,6 +11,7 @@ discord_charting = Blueprint(
     __name__,
 )
 
+user_blacklist = ['129132240239198208', '130463473401331713', '145452277409251328']
 
 @discord_charting.route('/', methods=['GET'])
 def landing():
@@ -35,7 +36,10 @@ def top_games_by_play_time():
             config.GAMES_TABLE.c.id == config.STATS_TABLE.c.gameId
         )
     ).where(
-        config.STATS_TABLE.c.endTime != None
+        and_(
+            config.STATS_TABLE.c.endTime != None,
+            ~config.STATS_TABLE.c.userId.in_(user_blacklist),
+        )
     ).execute().fetchall()
     for result in results:
         if result['gameId'] not in stats:
@@ -63,7 +67,10 @@ def top_games_by_user_count():
             config.GAMES_TABLE.c.id == config.STATS_TABLE.c.gameId
         )
     ).where(
-        config.STATS_TABLE.c.endTime != None
+        and_(
+            config.STATS_TABLE.c.endTime != None,
+            ~config.STATS_TABLE.c.userId.in_(user_blacklist),
+        )
     ).execute().fetchall()
     for result in results:
         if result['gameId'] not in stats:
@@ -90,7 +97,10 @@ def games_currently_being_played():
             config.GAMES_TABLE.c.id == config.STATS_TABLE.c.gameId
         )
     ).where(
-        config.STATS_TABLE.c.endTime == None
+        and_(
+            config.STATS_TABLE.c.endTime == None,
+            ~config.STATS_TABLE.c.userId.in_(user_blacklist),
+        )
     ).execute().fetchall()
     for result in results:
         if result['name'] not in stats:
@@ -106,7 +116,10 @@ def top_active_time_of_day():
         config.STATS_TABLE.c.startTime,
         config.STATS_TABLE.c.endTime,
     ]).where(
-        config.STATS_TABLE.c.endTime != None
+        and_(
+            config.STATS_TABLE.c.endTime != None,
+            ~config.STATS_TABLE.c.userId.in_(user_blacklist),
+        )
     ).execute().fetchall()
 
     # HourEachDay -> [userId]
@@ -156,7 +169,10 @@ def game_user_count_over_time():
             config.STATS_TABLE.c.gameId == config.GAMES_TABLE.c.id
         )
     ).where(
-        config.STATS_TABLE.c.endTime != None
+        and_(
+            config.STATS_TABLE.c.endTime != None,
+            ~config.STATS_TABLE.c.userId.in_(user_blacklist),
+        )
     ).execute().fetchall()
 
     # We want to capture the number of unique players per game per hour
