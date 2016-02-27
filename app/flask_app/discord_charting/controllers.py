@@ -165,6 +165,7 @@ def top_active_time_of_day():
 
     return Response(json.dumps(final_stats), mimetype='application/json')
 
+
 @discord_charting.route('/global/game_user_count_over_time', methods=['GET'])
 def game_user_count_over_time():
     results = select([
@@ -186,21 +187,21 @@ def game_user_count_over_time():
 
     # We want to capture the number of unique players per game per hour
     # Hour -> (Game -> [Players])
-    hour_map = dict()
+    hour_map = {}
     for result in results:
-        current_time = result['startTime'].replace(minute=0, second=0, microsecond=0)
-        end_time = result['endTime'].replace(minute=0, second=0, microsecond=0)
+        current_time = result['startTime'].replace(hour=0, minute=0, second=0, microsecond=0)
+        end_time = result['endTime'].replace(hour=0, minute=0, second=0, microsecond=0)
 
         # loop from start time to end time so we get a data point for each hour someone played a game
         while current_time <= end_time:
             if not hour_map.get(current_time):
-                hour_map[current_time] = dict()
+                hour_map[current_time] = {}
             if result['gameName'] not in hour_map[current_time]:
                 hour_map[current_time][result['gameName']] = []
             if result['userId'] not in hour_map[current_time][result['gameName']]:
                 hour_map[current_time][result['gameName']].append(result['userId'])
 
-            current_time += timedelta(hours=1)
+            current_time += timedelta(days=1)
 
     known_games = select([
         config.GAMES_TABLE.c.name
@@ -210,9 +211,9 @@ def game_user_count_over_time():
     times = sorted(list(hour_map.keys()))
     formatted_times = []
 
-    games = dict()
+    games = {}
     for time in times:
-        formatted_times.append(time.strftime('%Y-%m-%dT%H:00'))
+        formatted_times.append(time.strftime('%Y-%m-%d'))
 
         # we want a metric for every game even if it hasn't been played within our timeframe
         # so we loop over all known games here
