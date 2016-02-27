@@ -152,8 +152,14 @@ def top_active_time_of_day():
     # convert stats for highcharts
     final_stats = []
     for hour in range(0, 24):
+        if hour < 13:
+            h = hour
+            tod = 'AM'
+        else:
+            h = hour - 12
+            tod = 'PM'
         final_stats.append({
-            'name': str(hour) + ':00 - ' + str(hour + 1) + ':00',
+            'name': str(h) + ':00' + tod,
             'data': [stats[hour][0] / stats[hour][1]]
         })
 
