@@ -305,12 +305,17 @@ def top_active_users():
     for result in results:
         time_played[result['username']] = result['time_played'].total_seconds()
 
+    allotted_time = 0
     for user, play_time in time_played.items():
-        print(user, play_time, total_time)
         stats.append({
             'name': user,
             'y': (play_time / total_time) * 100
         })
+        allotted_time += play_time
+    stats.append({
+        'name': 'Other',
+        'y': (total_time - allotted_time) / total_time * 100
+    })
 
     return Response(json.dumps(stats), mimetype='application/json')
 
