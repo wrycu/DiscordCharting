@@ -280,6 +280,8 @@ def top_active_users():
             config.STATS_TABLE,
             config.USER_TABLE.c.id == config.STATS_TABLE.c.userId
         )
+    ).where(
+        ~config.STATS_TABLE.c.userId.in_(user_blacklist),
     ).group_by(
         config.USER_TABLE.c.username
     ).order_by(
@@ -338,6 +340,8 @@ def user_contribution_to_total_game_time():
             config.STATS_TABLE,
             config.USER_TABLE.c.id == config.STATS_TABLE.c.userId
         )
+    ).where(
+        ~config.STATS_TABLE.c.userId.in_(user_blacklist),
     ).group_by(
         config.USER_TABLE.c.username
     ).order_by(
@@ -396,7 +400,10 @@ def game_time_breakdown(user=None):
             config.GAMES_TABLE.c.id == config.STATS_TABLE.c.gameId
         )
     ).where(
-        config.STATS_TABLE.c.userId == user_id
+        and_(
+            config.STATS_TABLE.c.userId == user_id,
+            ~config.STATS_TABLE.c.userId.in_(user_blacklist),
+        )
     ).group_by(
         config.STATS_TABLE.c.gameId
     ).execute().fetchall()
@@ -455,7 +462,10 @@ def game_breakdown_by_user(game=None):
             config.USER_TABLE.c.id == config.STATS_TABLE.c.userId
         )
     ).where(
-        config.STATS_TABLE.c.gameId == game_id
+        and_(
+            config.STATS_TABLE.c.gameId == game_id,
+            ~config.STATS_TABLE.c.userId.in_(user_blacklist),
+        )
     ).group_by(
         config.STATS_TABLE.c.userId
     ).execute().fetchall()
