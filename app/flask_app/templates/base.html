@@ -19,6 +19,7 @@ Current games:<br/>
 <div id="total_games_played"></div>
 <div id="top_active_users"></div>
 <div id="user_contribution_to_total_game_time"></div>
+<div id="game_time_breakdown"></div>
 
 <script>
 $(function () {
@@ -243,7 +244,7 @@ $(function () {
         });
     });
 
-        $.getJSON('{{ url_for('discord_charting.user_contribution_to_total_game_time') }}', function(data) {
+    $.getJSON('{{ url_for('discord_charting.user_contribution_to_total_game_time') }}', function(data) {
         console.log(data);
         // Populate series
         $('#user_contribution_to_total_game_time').highcharts({
@@ -261,7 +262,48 @@ $(function () {
                 x: -20
             },
             tooltip: {
-                pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+                pointFormat: '<b>{point.percentage:.1f}%</b>'
+            },
+            plotOptions: {
+                pie: {
+                    allowPointSelect: true,
+                    cursor: 'pointer',
+                    dataLabels: {
+                        enabled: true,
+                        format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+                        style: {
+                            color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                        }
+                    }
+                }
+            },
+            series: [{
+                name: 'Top active users',
+                colorByPoint: true,
+                data: data
+            }]
+        });
+    });
+
+    $.getJSON('{{ url_for('discord_charting.game_time_breakdown') }}/Comrade%20Question', function(data) {
+        console.log(data);
+        // Populate series
+        $('#game_time_breakdown').highcharts({
+            chart: {
+                plotBackgroundColor: null,
+                plotBorderWidth: null,
+                plotShadow: false,
+                type: 'pie'
+            },
+            title: {
+                text: 'Game time breakdown'
+            },
+            subtitle: {
+                text: '% of your total game time',
+                x: -20
+            },
+            tooltip: {
+                pointFormat: '<b>{point.percentage:.1f}%</b>'
             },
             plotOptions: {
                 pie: {
