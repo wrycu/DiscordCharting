@@ -11,7 +11,10 @@ discord_charting = Blueprint(
     __name__,
 )
 
-user_blacklist = ['129132240239198208', '130463473401331713', '145452277409251328']
+user_blacklist = [
+    129132240239198208,
+]
+
 
 @discord_charting.route('/', methods=['GET'])
 def landing():
