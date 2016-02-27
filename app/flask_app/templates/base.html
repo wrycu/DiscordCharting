@@ -32,7 +32,7 @@ $(function () {
                 type: 'column'
             },
             title: {
-                text: 'Top 5 played games'
+                text: 'Top 5 played games - 1'
             },
             subtitle: {
                 text: 'by combined gametime'
@@ -40,7 +40,10 @@ $(function () {
             xAxis: {
                 title: {
                     text: 'Game'
-                }
+                },
+                categories: [
+                    'Game',
+                ]
             },
             yAxis: {
                 title: {
@@ -67,7 +70,7 @@ $(function () {
                 type: 'column'
             },
             title: {
-                text: 'Top 5 played games'
+                text: 'Top 5 played games - 2'
             },
             subtitle: {
                 text: 'by unique players'
@@ -75,7 +78,10 @@ $(function () {
             xAxis: {
                 title: {
                     text: 'Game'
-                }
+                },
+                categories: [
+                    'Game',
+                ]
             },
             yAxis: {
                 title: {
@@ -103,12 +109,15 @@ $(function () {
                 type: 'column'
             },
             title: {
-                text: 'Hourly Activity'
+                text: 'Hourly Activity - 3'
             },
             xAxis: {
                 title: {
                     text: 'hour'
-                }
+                },
+                categories: [
+                    'Activity',
+                ]
             },
             yAxis: {
                 title: {
@@ -116,12 +125,14 @@ $(function () {
                 }
             },
             tooltip: {
-
+                pointFormat: '{series.name}: <b>{point.y:.1f}</b> users on average'
             },
             plotOptions: {
                 column: {
-                    pointPadding: 0.2,
-                    borderWidth: 0
+                    borderWidth: 0,
+                    tooltip: {
+                        valueSuffix: ' average users',
+                    },
                 }
             },
             series: data
@@ -133,7 +144,7 @@ $(function () {
         // Populate series
         $('#game_user_count_over_time').highcharts({
             title: {
-                text: 'User Count/Game',
+                text: 'User Count/Game - 4',
                 x: -20 //center
             },
             subtitle: {
@@ -171,7 +182,7 @@ $(function () {
         // Populate series
         $('#total_games_played').highcharts({
             title: {
-                text: 'Total unique games played',
+                text: 'Total unique games played - 5',
                 x: -20 //center
             },
             subtitle: {
@@ -190,9 +201,6 @@ $(function () {
                     width: 1,
                     color: '#808080'
                 }]
-            },
-            tooltip: {
-                valueSuffix: ' games'
             },
             legend: {
                 layout: 'vertical',
@@ -215,7 +223,7 @@ $(function () {
                 type: 'pie'
             },
             title: {
-                text: 'Top 5 Active users'
+                text: 'Top 5 Active users - 6'
             },
             subtitle: {
                 text: 'contribution to top 5 users\' game time',
@@ -256,7 +264,7 @@ $(function () {
                 type: 'pie'
             },
             title: {
-                text: 'Top 15 Active users'
+                text: 'Top 15 Active users - 7'
             },
             subtitle: {
                 text: 'contribution to total game time',
@@ -271,7 +279,6 @@ $(function () {
                     cursor: 'pointer',
                     dataLabels: {
                         enabled: true,
-                        format: '<b>{point.name}</b>: {point.percentage:.1f} %',
                         style: {
                             color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
                         }
@@ -297,7 +304,7 @@ $(function () {
                 type: 'pie'
             },
             title: {
-                text: 'Game time breakdown'
+                text: 'Game time breakdown - 8'
             },
             subtitle: {
                 text: '% of your total game time',
@@ -338,7 +345,7 @@ $(function () {
                 type: 'pie'
             },
             title: {
-                text: 'Armored Warfare user time breakdown'
+                text: 'Armored Warfare user time breakdown - 9'
             },
             subtitle: {
                 text: '% time spent playing by users',
