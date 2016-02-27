@@ -28,7 +28,7 @@ async def background_task():
             roles = []
             for role in member.roles:
                 roles.append(str(role))
-            if 'member' not in roles:
+            if 'member' not in roles or 'bot' in roles:
                 # This person is not someone an admin has registered on the server
                 # We don't care about you, sir
                 continue
