@@ -426,4 +426,51 @@ def user_activity_breakdown(user=None):
 @discord_charting.route('/game/time_breakdown_by_user', methods=['GET'])
 @discord_charting.route('/game/time_breakdown_by_user/<string:game>', methods=['GET'])
 def game_breakdown_by_user(game=None):
-    return game
+    if not game:
+        return 'You must include a user', 404
+    game_id = select([
+        config.GAMES_TABLE.c.id,
+    ]).where(
+        config.GAMES_TABLE.c.name == game
+    ).execute().fetchone()
+
+    if not game_id:
+        return 'Game not found (case matters!)', 404
+    else:
+        game_id = game_id['id']
+
+    results = select([
+        config.USER_TABLE.c.username,
+        func.sec_to_time(
+            func.sum(
+                func.timediff(
+                    config.STATS_TABLE.c.endTime,
+                    config.STATS_TABLE.c.startTime
+                )
+            )
+        ).label('time_played'),
+    ]).select_from(
+        config.STATS_TABLE.join(
+            config.USER_TABLE,
+            config.USER_TABLE.c.id == config.STATS_TABLE.c.userId
+        )
+    ).where(
+        config.STATS_TABLE.c.gameId == game_id
+    ).group_by(
+        config.STATS_TABLE.c.userId
+    ).execute().fetchall()
+
+    time_played = {}
+    stats = []
+    total_time = 0
+    for result in results:
+        time_played[result['username']] = result['time_played'].total_seconds()
+        total_time += result['time_played'].total_seconds()
+
+    for game, play_time in time_played.items():
+        stats.append({
+            'name': game,
+            'y': play_time / total_time * 100
+        })
+
+    return Response(json.dumps(stats), mimetype='application/json')
