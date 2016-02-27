@@ -17,6 +17,8 @@ Current games:<br/>
 <div id="top_active_time_of_day"></div>
 <div id="game_user_count_over_time"></div>
 <div id="total_games_played"></div>
+<div id="top_active_users"></div>
+<div id="user_contribution_to_total_game_time"></div>
 
 <script>
 $(function () {
@@ -197,6 +199,88 @@ $(function () {
                 borderWidth: 0
             },
             series: data['games']
+        });
+    });
+
+    $.getJSON('{{ url_for('discord_charting.top_active_users') }}', function(data) {
+        console.log(data);
+        // Populate series
+        $('#top_active_users').highcharts({
+            chart: {
+                plotBackgroundColor: null,
+                plotBorderWidth: null,
+                plotShadow: false,
+                type: 'pie'
+            },
+            title: {
+                text: 'Top 5 Active users'
+            },
+            subtitle: {
+                text: 'contribution to top 5 users\' game time',
+                x: -20
+            },
+            tooltip: {
+                pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+            },
+            plotOptions: {
+                pie: {
+                    allowPointSelect: true,
+                    cursor: 'pointer',
+                    dataLabels: {
+                        enabled: true,
+                        format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+                        style: {
+                            color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                        }
+                    }
+                }
+            },
+            series: [{
+                name: 'Top active users',
+                colorByPoint: true,
+                data: data
+            }]
+        });
+    });
+
+        $.getJSON('{{ url_for('discord_charting.user_contribution_to_total_game_time') }}', function(data) {
+        console.log(data);
+        // Populate series
+        $('#user_contribution_to_total_game_time').highcharts({
+            chart: {
+                plotBackgroundColor: null,
+                plotBorderWidth: null,
+                plotShadow: false,
+                type: 'pie'
+            },
+            title: {
+                text: 'Top 5 Active users'
+            },
+            subtitle: {
+                text: 'contribution to total game time',
+                x: -20
+            },
+            tooltip: {
+                pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+            },
+            plotOptions: {
+                pie: {
+                    allowPointSelect: true,
+                    cursor: 'pointer',
+                    dataLabels: {
+                        enabled: true,
+                        format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+                        style: {
+                            color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                        }
+                    }
+                }
+            },
+            series: [{
+                name: 'Top active users',
+                colorByPoint: true,
+                data: data
+            }]
         });
     });
 });

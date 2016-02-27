@@ -1,4 +1,4 @@
-from sqlalchemy import select, and_, asc, desc
+from sqlalchemy import select, and_, asc, desc, func
 from flask import Blueprint, render_template, Response
 from app import config
 import json
@@ -262,12 +262,101 @@ def total_games_played():
 
 @discord_charting.route('/global/top_active_users', methods=['GET'])
 def top_active_users():
-    pass
+    # Get the top 5 most active users and the percent of time that they account for
+    results = select([
+        config.USER_TABLE.c.username,
+        func.sec_to_time(
+            func.sum(
+                func.timediff(
+                    config.STATS_TABLE.c.endTime,
+                    config.STATS_TABLE.c.startTime
+                )
+            )
+        ).label('time_played')
+    ]).select_from(
+        config.USER_TABLE.join(
+            config.STATS_TABLE,
+            config.USER_TABLE.c.id == config.STATS_TABLE.c.userId
+        )
+    ).group_by(
+        config.USER_TABLE.c.username
+    ).order_by(
+        desc(
+            'time_played'
+        )
+    ).limit(
+        5
+    ).execute().fetchall()
+
+    # Get the total game time
+    total_time = float(select([
+        func.sum(
+            func.timediff(
+                config.STATS_TABLE.c.endTime,
+                config.STATS_TABLE.c.startTime
+            )
+        )
+    ]).execute().first()[0])
+
+    time_played = {}
+    stats = []
+    for result in results:
+        time_played[result['username']] = result['time_played'].total_seconds()
+
+    for user, play_time in time_played.items():
+        print(user, play_time, total_time)
+        stats.append({
+            'name': user,
+            'y': (play_time / total_time) * 100
+        })
+
+    return Response(json.dumps(stats), mimetype='application/json')
 
 
 @discord_charting.route('/global/user_contribution_to_total_game_time', methods=['GET'])
 def user_contribution_to_total_game_time():
-    pass
+    # Get the users game time and the percent of time that they account for
+    results = select([
+        config.USER_TABLE.c.username,
+        func.sec_to_time(
+            func.sum(
+                func.timediff(
+                    config.STATS_TABLE.c.endTime,
+                    config.STATS_TABLE.c.startTime
+                )
+            )
+        ).label('time_played')
+    ]).select_from(
+        config.USER_TABLE.join(
+            config.STATS_TABLE,
+            config.USER_TABLE.c.id == config.STATS_TABLE.c.userId
+        )
+    ).group_by(
+        config.USER_TABLE.c.username
+    ).order_by(
+        desc(
+            'time_played'
+        )
+    ).limit(
+        20
+    ).execute().fetchall()
+
+    time_played = {}
+    stats = []
+    total_time = 0
+    for result in results:
+        time_played[result['username']] = result['time_played'].total_seconds()
+        total_time += result['time_played'].total_seconds()
+
+    for user, play_time in time_played.items():
+        stats.append({
+            'name': user,
+            'y': play_time / total_time * 100
+        })
+
+    return Response(json.dumps(stats), mimetype='application/json')
+
+
 
 
 @discord_charting.route('/global/most_concurrent_players_by_game', methods=['GET'])
