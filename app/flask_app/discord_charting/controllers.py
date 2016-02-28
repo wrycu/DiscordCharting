@@ -387,18 +387,32 @@ def user_contribution_to_total_game_time():
         20
     ).execute().fetchall()
 
+    # Get the total game time
+    total_time = float(select([
+        func.sum(
+            func.timediff(
+                config.STATS_TABLE.c.endTime,
+                config.STATS_TABLE.c.startTime
+            )
+        )
+    ]).execute().first()[0])
+
     time_played = {}
     stats = []
-    total_time = 0
     for result in results:
         time_played[result['username']] = result['time_played'].total_seconds()
-        total_time += result['time_played'].total_seconds()
 
+    allotted_time = 0
     for user, play_time in time_played.items():
         stats.append({
             'name': user,
-            'y': play_time / total_time * 100
+            'y': (play_time / total_time) * 100
         })
+        allotted_time += play_time
+    stats.append({
+        'name': 'Other',
+        'y': (total_time - allotted_time) / total_time * 100
+    })
 
     return Response(json.dumps(stats), mimetype='application/json')
 
