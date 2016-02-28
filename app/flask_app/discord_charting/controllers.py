@@ -1,5 +1,5 @@
 from sqlalchemy import select, and_, asc, desc, func
-from flask import Blueprint, render_template, Response
+from flask import Blueprint, render_template, Response, request
 from app import config
 import json
 from datetime import timedelta
@@ -465,7 +465,7 @@ def user_activity_breakdown(user=None):
 @discord_charting.route('/game/time_breakdown_by_user/<string:game>', methods=['GET'])
 def game_breakdown_by_user(game=None):
     if not game:
-        return 'You must include a user', 404
+        return 'You must include a game', 404
     game_id = select([
         config.GAMES_TABLE.c.id,
     ]).where(
@@ -515,3 +515,45 @@ def game_breakdown_by_user(game=None):
         })
 
     return Response(json.dumps(stats), mimetype='application/json')
+
+
+@discord_charting.route('/typeahead', methods=['GET'])
+def typeahead():
+    user = request.args.get('user', None)
+    game = request.args.get('game', None)
+    if user is not None:
+        results = select([
+            config.USER_TABLE.c.username,
+            config.USER_TABLE.c.id,
+        ]).where(
+            config.USER_TABLE.c.username.like(
+                '%' + user + '%'
+            )
+        ).execute().fetchall()
+        # Convert the data into typeahead format
+        json_results = []
+        for result in results:
+            json_results.append({
+                'name': result['username'],
+                'value': result['id']
+            })
+        return Response(json.dumps(json_results), mimetype='application/json')
+    elif game is not None:
+        results = select([
+            config.GAMES_TABLE.c.name,
+            config.GAMES_TABLE.c.id,
+        ]).where(
+            config.GAMES_TABLE.c.name.like(
+                '%' + game + '%'
+            )
+        ).execute().fetchall()
+        # Convert the data into typeahead format
+        json_results = []
+        for result in results:
+            json_results.append({
+                'name': result['name'],
+                'value': result['id']
+            })
+        return Response(json.dumps(json_results), mimetype='application/json')
+    else:
+        return 'You must include a parameter to typeahead on', 400
