@@ -7,20 +7,48 @@
 <body>
 <script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
 <script src="https://code.highcharts.com/highcharts.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+<center>
 Hi!<br/>
 Current games:<br/>
 {% for game, players in current_games.items() %}
     {{ game }} - {{ players }} player(s)<br/>
 {% endfor %}
-<div id="top_games_by_play_time"></div>
-<div id="top_games_by_user_count"></div>
+</center>
+<div class="row">
+    <div class="col-lg-6">
+        <div id="top_games_by_play_time"></div>
+    </div>
+    <div class="col-lg-6">
+        <div id="top_games_by_user_count"></div>
+    </div>
+</div>
+<hr>
+<div class="row">
+    <div class="col-lg-6">
+        <div id="top_active_users"></div>
+    </div>
+    <div class="col-lg-6">
+        <div id="user_contribution_to_total_game_time"></div>
+    </div>
+</div>
+<hr>
+<div class="row">
+    <div class="col-lg-6">
+        <div id="game_time_breakdown"></div>
+        <input type="text" class="form-control" placeholder="Discord user" aria-describedby="basic-addon2">
+    </div>
+    <div class="col-lg-6">
+        <div id="game_breakdown_by_user"></div>
+        <input type="text" class="form-control" placeholder="Discord game" aria-describedby="basic-addon2">
+    </div>
+</div>
+
+
 <div id="top_active_time_of_day"></div>
 <div id="game_user_count_over_time"></div>
 <div id="total_games_played"></div>
-<div id="top_active_users"></div>
-<div id="user_contribution_to_total_game_time"></div>
-<div id="game_time_breakdown"></div>
-<div id="game_breakdown_by_user"></div>
 
 <script>
 $(function () {
@@ -51,7 +79,7 @@ $(function () {
                 }
             },
             tooltip: {
-
+                pointFormat: '{series.name}: <b>{point.y:.1f}</b> combined hours'
             },
             plotOptions: {
                 column: {
@@ -89,7 +117,7 @@ $(function () {
                 }
             },
             tooltip: {
-
+                pointFormat: '{series.name}: <b>{point.y}</b> total players'
             },
             plotOptions: {
                 column: {
