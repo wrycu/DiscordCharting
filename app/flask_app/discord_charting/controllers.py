@@ -2,9 +2,7 @@ from sqlalchemy import select, and_, asc, desc, func
 from flask import Blueprint, render_template, Response
 from app import config
 import json
-import datetime
 from datetime import timedelta
-import collections
 
 discord_charting = Blueprint(
     'discord_charting',
@@ -55,6 +53,7 @@ def top_games_by_play_time():
     for game in raw_top_games:
         top_games.append({'name': game_mapping[game], 'data': [stats[game]]})
     return Response(json.dumps(top_games), mimetype='application/json')
+
 
 @discord_charting.route('/global/top_games_by_user_count', methods=['GET'])
 def top_games_by_user_count():
@@ -278,7 +277,6 @@ def total_games_played():
             times.append(start)
         user_stats[start] += 1
         total += 1
-
 
     # convert stats for highcharts
     final_stats = {
