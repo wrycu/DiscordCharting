@@ -237,7 +237,8 @@ def game_user_count_over_time():
 @discord_charting.route('/global/total_games_played', methods=['GET'])
 def total_games_played():
     # get all of the stats, get the earliest game time seen, and chart from then in 1 day increments
-    stats = {}
+    game_stats = {}
+    user_stats = {}
     times = []
     total = 0
 
@@ -254,17 +255,39 @@ def total_games_played():
 
     for result in results:
         start = result['firstSeen'].strftime('%Y-%m-%d')
-        if start not in stats:
-            stats[start] = total
+        if start not in game_stats:
+            game_stats[start] = total
             times.append(start)
-        stats[start] += 1
+        game_stats[start] += 1
         total += 1
+
+    results = select([
+        config.USER_TABLE.c.username,
+        config.USER_TABLE.c.firstSeen,
+    ]).order_by(
+        asc(
+            config.USER_TABLE.c.firstSeen
+        )
+    ).execute().fetchall()
+
+    total = 0
+    for result in results:
+        start = result['firstSeen'].strftime('%Y-%m-%d')
+        if start not in user_stats:
+            user_stats[start] = total
+            times.append(start)
+        user_stats[start] += 1
+        total += 1
+
 
     # convert stats for highcharts
     final_stats = {
         'games': [{
             'name': 'Unique games',
-            'data': sorted(list(stats.values()))
+            'data': sorted(list(game_stats.values()))
+        }, {
+            'name': 'Unique users',
+            'data': sorted(list(user_stats.values()))
         }],
         'times': times,
     }
