@@ -32,7 +32,7 @@
                     Oh well.  Make sure your users are not jerks if you wish for this to not be a security vuln.
                     Or just don't include the functionality to display which users are playing....
                 -#}
-                <span class="badge" data-toggle="tooltip" data-html="true" title="{%- for player in players -%}{{ player }}<br>{%- endfor -%}">
+                <span class="badge" data-toggle="tooltip" data-html="true" title="{%- for player in players -%}{{ player|replace(' ', '_') }}<br>{%- endfor -%}">
                     {{ players|length }} player(s)
                 </span>
             </li>
