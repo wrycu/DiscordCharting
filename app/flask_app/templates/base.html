@@ -1,7 +1,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Discord Stat Tracking</title>
 </head>
 <body>
 <script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
@@ -11,13 +11,30 @@
 <script src="{{ url_for('static', filename='typeahead.js') }}"></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='typeahead.css') }}">
 
-<center>
-Hi!<br/>
-Current games:<br/>
-{% for game, players in current_games.items() %}
-    {{ game }} - {{ players }} player(s)<br/>
-{% endfor %}
-</center>
+&nbsp;
+<div class="row"><div class="col-lg-2 col-lg-offset-5">
+    <ul class="list-group">
+        <li class="list-group-item active">
+            Games currently being played
+        </li>
+        {%- for game, players in current_games.items() -%}
+            <li class="list-group-item">
+                {{ game }}
+                {#-
+                    The line below this enables XSS if the user has used HTML in their username --
+                        I tried to prevent it by calling escape, but jquery (helpfully) decoded it.
+                        I then tried double-encoding it, but jquery double-decoded it.
+                    Oh well.  Make sure your users are not jerks if you wish for this to not be a security vuln.
+                    Or just don't include the functionality to display which users are playing....
+                -#}
+                <span class="badge" data-toggle="tooltip" data-html="true" title="{%- for player in players -%}{{ player }}<br>{%- endfor -%}">
+                    {{ players|length }} player(s)
+                </span>
+            </li>
+        {%- endfor -%}
+    </ul>
+</div></div>
+&nbsp;
 
 <div class="row">
     <div class="col-lg-6">
@@ -66,6 +83,9 @@ Current games:<br/>
 
 <script>
 $(function () {
+    /* Prepare tooltips */
+    $('[data-toggle="tooltip"]').tooltip();
+
     /* Typeahead for the users */
     var user_typeahead = new Bloodhound({
       datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),

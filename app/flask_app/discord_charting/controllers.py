@@ -91,12 +91,16 @@ def top_games_by_user_count():
 def games_currently_being_played():
     stats = {}
     results = select([
+        config.USER_TABLE.c.username,
         config.STATS_TABLE.c.gameId,
         config.GAMES_TABLE.c.name,
     ]).select_from(
         config.STATS_TABLE.join(
             config.GAMES_TABLE,
             config.GAMES_TABLE.c.id == config.STATS_TABLE.c.gameId
+        ).join(
+            config.USER_TABLE,
+            config.USER_TABLE.c.id == config.STATS_TABLE.c.userId
         )
     ).where(
         and_(
@@ -106,8 +110,8 @@ def games_currently_being_played():
     ).execute().fetchall()
     for result in results:
         if result['name'] not in stats:
-            stats[result['name']] = 0
-        stats[result['name']] += 1
+            stats[result['name']] = []
+        stats[result['name']].append(result['username'])
     return stats
 
 
