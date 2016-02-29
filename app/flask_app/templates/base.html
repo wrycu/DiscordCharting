@@ -269,7 +269,8 @@ $(function () {
                 }]
             },
             tooltip: {
-                valueSuffix: ' players'
+                valueSuffix: ' players',
+                shared: true
             },
             legend: {
                 layout: 'vertical',
@@ -286,7 +287,7 @@ $(function () {
         // Populate series
         $('#total_games_played').highcharts({
             title: {
-                text: 'Total unique games played - 5',
+                text: 'Unique games and users - 5',
                 x: -20 //center
             },
             subtitle: {
@@ -298,7 +299,7 @@ $(function () {
             },
             yAxis: {
                 title: {
-                    text: '# of unique games'
+                    text: '# of unique games / users'
                 },
                 plotLines: [{
                     value: 0,
