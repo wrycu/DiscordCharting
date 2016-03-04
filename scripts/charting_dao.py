@@ -1,4 +1,4 @@
-from sqlalchemy import select, func, and_
+from sqlalchemy import select, and_, delete
 
 
 class ChartingDao:
@@ -12,6 +12,12 @@ class ChartingDao:
         self.members_table = meta_data.tables['users']
         self.games_table = meta_data.tables['games']
         self.stats_table = meta_data.tables['statistics']
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
 
     def get_members(self):
         """
@@ -209,3 +215,10 @@ class ChartingDao:
             'userId': user_id,
             'startTime': start_time,
         }).execute()
+
+    def cleanup(self):
+        delete(
+            self.stats_table,
+        ).where(
+            self.stats_table.c.endTime == None
+        ).execute()

@@ -12,7 +12,9 @@ client = discord.Client()
 @client.event
 async def on_ready():
     # TODO: migrate the background_task code to a function so we can call from here or there
-    print("Ready to poll")
+    print("Cleaning old entries")
+    with ChartingDao(discord_meta) as dao:
+        dao.cleanup()
 
 async def background_task():
     await client.wait_until_ready()
