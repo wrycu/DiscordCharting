@@ -1,8 +1,11 @@
-from sqlalchemy import select, and_, asc, desc, func
-from flask import Blueprint, render_template, Response, request
-from app import config
 import json
 from datetime import timedelta
+
+from flask import Blueprint, render_template, Response, request
+from sqlalchemy import select, and_, asc, desc, func
+
+from app import config
+from scripts.boot_listener import BootListener
 
 discord_charting = Blueprint(
     'discord_charting',
@@ -12,6 +15,13 @@ discord_charting = Blueprint(
 user_blacklist = [
     129132240239198208,
 ]
+
+
+@discord_charting.route('/bootlistener', methods=['POST', 'OPTIONS'])
+def boot_listener():
+    now_playing = request.form['song']
+    BootListener(now_playing)
+    return Response('SUCCESS')
 
 
 @discord_charting.route('/', methods=['GET'])

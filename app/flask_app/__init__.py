@@ -1,8 +1,10 @@
 from flask import Flask
 from app.flask_app.discord_charting.controllers import discord_charting
+from flask_cors import CORS
 
 app = Flask(__name__)
 app.config.from_object('config')
+cors = CORS(app)
 
 
 @app.errorhandler(404)

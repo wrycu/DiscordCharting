@@ -39,6 +39,7 @@ function handlePandora(addedNode) {
 			// this "hack" will wait until we have an artist and title before updating the boot
 			if (title && artist) {
 				console.log(artist + ' - ' + title);
+                sendNowPlaying(artist + ' - ' + title);
 			} else {
 				console.debug('First song trigger didn\'t contain artist or song title.');
 			}
@@ -55,5 +56,28 @@ function handleYoutube(addedNode) {
 		console.log('Main content probably loaded at this point');
 		// grab song info since we think it's here
 		console.log(document.getElementById('eow-title').title);
+        sendNowPlaying(document.getElementById('eow-title').title);
 	}
+}
+
+function sendNowPlaying(nowPlaying) {
+    var xmlhttp = new XMLHttpRequest();
+
+    xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState == XMLHttpRequest.DONE ) {
+           if(xmlhttp.status == 200){
+               console.log('Sent now playing');
+           }
+           else if(xmlhttp.status == 400) {
+              console.log('There was an error 400');
+           }
+           else {
+               console.log('something else other than 200 was returned');
+           }
+        }
+    };
+
+    xmlhttp.open("POST", 'http://127.0.0.1:9090/bootlistener', true);
+    xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xmlhttp.send('song=' + encodeURIComponent(nowPlaying));
 }

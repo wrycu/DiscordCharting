@@ -3,3 +3,4 @@ flask
 requests
 pymysql
 git+https://github.com/Rapptz/discord.py.git
+flask-cors
