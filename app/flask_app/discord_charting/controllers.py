@@ -13,7 +13,7 @@ discord_charting = Blueprint(
 )
 
 user_blacklist = [
-    129132240239198208,
+    #129132240239198208,
 ]
 
 
