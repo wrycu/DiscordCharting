@@ -68,6 +68,13 @@
     <div class="col-lg-6">
         <div id="game_time_breakdown"></div>
         <div class="col-lg-4 col-lg-offset-4">
+            <div class="panel panel-default">
+                <div class="panel-body" id="user_meta">
+                    BULLSHIT
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-lg-offset-4">
             <div id="user_typeahead">
                 <input type="text" class="form-control typeahead" placeholder="Discord user" aria-describedby="basic-addon2">
             </div>
@@ -75,6 +82,13 @@
     </div>
     <div class="col-lg-6">
         <div id="game_breakdown_by_user"></div>
+        <div class="col-lg-4 col-lg-offset-4">
+            <div class="panel panel-default">
+                <div class="panel-body" id="game_meta">
+                    BULLSHIT
+                </div>
+            </div>
+        </div>
         <div class="col-lg-4 col-lg-offset-4">
             <div id="game_typeahead">
                 <input type="text" class="form-control typeahead" placeholder="Discord game" aria-describedby="basic-addon2">
@@ -404,7 +418,9 @@ $(function () {
 
 function render_game_time_breakdown(user) {
     $.getJSON('{{ url_for('discord_charting.game_time_breakdown') }}/' + user, function(data) {
-        console.log(data);
+        document.getElementById('user_meta').innerHTML = data['meta']['user'] + ' has played a total of <b>' +
+            data['meta']['total'] + '</b> hours of games & was first seen on ' +
+            data['meta']['first_seen'] + '(<b>' + data['meta']['days'] + '</b> days ago)!';
         // Populate series
         $('#game_time_breakdown').highcharts({
             chart: {
@@ -439,7 +455,7 @@ function render_game_time_breakdown(user) {
             series: [{
                 name: '',
                 colorByPoint: true,
-                data: data
+                data: data['chart']
             }]
         });
     });
@@ -447,7 +463,9 @@ function render_game_time_breakdown(user) {
 
 function render_game_breakdown_by_user(game) {
     $.getJSON('{{ url_for('discord_charting.game_breakdown_by_user') }}/' + game, function(data) {
-        console.log(data);
+        document.getElementById('game_meta').innerHTML = game + ' has been played for a total of <b>' +
+            data['meta']['total'] + '</b> hours & was first played on ' +
+            data['meta']['first_seen'] + '(<b>' + data['meta']['days'] + '</b> days ago)!';
         // Populate series
         $('#game_breakdown_by_user').highcharts({
             chart: {
@@ -482,7 +500,7 @@ function render_game_breakdown_by_user(game) {
             series: [{
                 name: 'Top active users',
                 colorByPoint: true,
-                data: data
+                data: data['chart']
             }]
         });
     });
