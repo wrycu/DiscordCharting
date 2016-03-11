@@ -251,12 +251,7 @@ def game_user_count_over_time():
 @discord_charting.route('/global/total_games_played', methods=['GET'])
 def total_games_played():
     # get all of the stats, get the earliest game time seen, and chart from then in 1 day increments
-    game_stats = {}
-    user_stats = {}
-    times = []
-    total = 0
-
-    results = select([
+    game_results = select([
         config.GAMES_TABLE.c.name,
         config.GAMES_TABLE.c.firstSeen,
     ]).where(
@@ -267,15 +262,7 @@ def total_games_played():
         )
     ).execute().fetchall()
 
-    for result in results:
-        start = result['firstSeen'].strftime('%Y-%m-%d')
-        if start not in game_stats:
-            game_stats[start] = total
-            times.append(start)
-        game_stats[start] += 1
-        total += 1
-
-    results = select([
+    user_results = select([
         config.USER_TABLE.c.username,
         config.USER_TABLE.c.firstSeen,
     ]).order_by(
@@ -284,25 +271,54 @@ def total_games_played():
         )
     ).execute().fetchall()
 
-    total = 0
-    for result in results:
-        start = result['firstSeen'].strftime('%Y-%m-%d')
-        if start not in user_stats:
-            user_stats[start] = total
-            times.append(start)
-        user_stats[start] += 1
-        total += 1
+    # Results are sorted
+    if game_results[0]['firstSeen'] < user_results[0]['firstSeen']:
+        first_date = game_results[0]['firstSeen']
+    else:
+        first_date = user_results[0]['firstSeen']
+    date_range = datetime.datetime.today() - first_date
+    stats = {
+        'games': [],
+        'users': [],
+    }
+    dates = []
+    for x in range(date_range.days, 0, -1):
+        stats['games'].append(0)
+        stats['users'].append(0)
+        dates.append((datetime.datetime.today() - timedelta(days=x)).strftime('%Y-%m-%d'))
+    stats['games'].append(0)
+    stats['users'].append(0)
+    dates.append((datetime.datetime.today() - timedelta(days=0)).strftime('%Y-%m-%d'))
 
-    # convert stats for highcharts
+    for result in game_results:
+        time_diff = (datetime.datetime.today() - result['firstSeen']).days
+        stats['games'][time_diff] += 1
+    for result in user_results:
+        time_diff = (datetime.datetime.today() - result['firstSeen']).days
+        stats['users'][time_diff] += 1
+
+    # Hm. It appears the data is backwards. We could debug it.. or just make it forward.
+    stats['games'].reverse()
+    stats['users'].reverse()
+    # Ah yes, we need totals. Let's fix this the bad way
+    games_total = 0
+    user_total = 0
+    for x in range(0, date_range.days + 1):
+        stats['games'][x] += games_total
+        games_total = stats['games'][x]
+        stats['users'][x] += user_total
+        user_total = stats['users'][x]
+
+    # Format stats for highcharts
     final_stats = {
         'games': [{
             'name': 'Unique games',
-            'data': sorted(list(game_stats.values()))
+            'data': stats['games'],
         }, {
             'name': 'Unique users',
-            'data': sorted(list(user_stats.values()))
+            'data': stats['users'],
         }],
-        'times': times,
+        'times': dates,
     }
 
     return Response(json.dumps(final_stats), mimetype='application/json')
