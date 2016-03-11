@@ -3,6 +3,7 @@ from datetime import timedelta
 
 from flask import Blueprint, render_template, Response, request
 from sqlalchemy import select, and_, asc, desc, func
+import datetime
 
 from app import config
 from scripts.boot_listener import BootListener
@@ -431,9 +432,10 @@ def user_contribution_to_total_game_time():
 @discord_charting.route('/user/game_time_breakdown/<string:user>', methods=['GET'])
 def game_time_breakdown(user=None):
     if not user:
-        return 'You must include a user', 404
+        return 'You must include a user', 400
     user_id = select([
         config.USER_TABLE.c.id,
+        config.USER_TABLE.c.firstSeen,
     ]).where(
         config.USER_TABLE.c.username == user
     ).execute().fetchone()
@@ -441,6 +443,8 @@ def game_time_breakdown(user=None):
     if not user_id:
         return 'User not found (case matters!)', 404
     else:
+        first_seen = user_id['firstSeen'].strftime('%Y/%m/%d')
+        day_offset = (datetime.datetime.today() - user_id['firstSeen']).days
         user_id = user_id['id']
 
     results = select([
@@ -480,7 +484,18 @@ def game_time_breakdown(user=None):
             'y': play_time / total_time * 100
         })
 
-    return Response(json.dumps(stats), mimetype='application/json')
+    data = {
+        'meta': {
+            'total': total_time // 60 // 60,
+            'rank': -1,
+            'user': user,
+            'first_seen': first_seen,
+            'days': day_offset,
+        },
+        'chart': stats,
+    }
+
+    return Response(json.dumps(data), mimetype='application/json')
 
 
 @discord_charting.route('/user/activity_breakdown', methods=['GET'])
@@ -496,6 +511,7 @@ def game_breakdown_by_user(game=None):
         return 'You must include a game', 404
     game_id = select([
         config.GAMES_TABLE.c.id,
+        config.GAMES_TABLE.c.firstSeen,
     ]).where(
         config.GAMES_TABLE.c.name == game
     ).execute().fetchone()
@@ -503,6 +519,8 @@ def game_breakdown_by_user(game=None):
     if not game_id:
         return 'Game not found (case matters!)', 404
     else:
+        first_seen = game_id['firstSeen'].strftime('%Y/%m/%d')
+        day_offset = (datetime.datetime.today() - game_id['firstSeen']).days
         game_id = game_id['id']
 
     results = select([
@@ -542,7 +560,18 @@ def game_breakdown_by_user(game=None):
             'y': play_time / total_time * 100
         })
 
-    return Response(json.dumps(stats), mimetype='application/json')
+    data = {
+        'meta': {
+            'total': total_time // 60 // 60,
+            'rank': -1,
+            'game': game,
+            'first_seen': first_seen,
+            'days': day_offset,
+        },
+        'chart': stats,
+    }
+
+    return Response(json.dumps(data), mimetype='application/json')
 
 
 @discord_charting.route('/typeahead', methods=['GET'])
