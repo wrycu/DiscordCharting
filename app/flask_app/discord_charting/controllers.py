@@ -332,9 +332,10 @@ def top_active_users():
         config.USER_TABLE.c.username,
         func.sec_to_time(
             func.sum(
-                func.timediff(
-                    config.STATS_TABLE.c.endTime,
-                    config.STATS_TABLE.c.startTime
+                func.timestampdiff(
+                    text('SECOND'),
+                    config.STATS_TABLE.c.startTime,
+                    config.STATS_TABLE.c.endTime
                 )
             )
         ).label('time_played')
@@ -392,9 +393,10 @@ def user_contribution_to_total_game_time():
         config.USER_TABLE.c.username,
         func.sec_to_time(
             func.sum(
-                func.timediff(
-                    config.STATS_TABLE.c.endTime,
-                    config.STATS_TABLE.c.startTime
+                func.timestampdiff(
+                    text('SECOND'),
+                    config.STATS_TABLE.c.startTime,
+                    config.STATS_TABLE.c.endTime
                 )
             )
         ).label('time_played')
