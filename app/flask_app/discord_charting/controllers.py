@@ -3,6 +3,7 @@ from datetime import timedelta
 
 from flask import Blueprint, render_template, Response, request
 from sqlalchemy import select, and_, asc, desc, func
+from sqlalchemy import text
 import datetime
 
 from app import config
@@ -543,9 +544,10 @@ def game_breakdown_by_user(game=None):
         config.USER_TABLE.c.username,
         func.sec_to_time(
             func.sum(
-                func.timediff(
-                    config.STATS_TABLE.c.endTime,
-                    config.STATS_TABLE.c.startTime
+                func.timestampdiff(
+                    text('SECOND'),
+                    config.STATS_TABLE.c.startTime,
+                    config.STATS_TABLE.c.endTime
                 )
             )
         ).label('time_played'),
