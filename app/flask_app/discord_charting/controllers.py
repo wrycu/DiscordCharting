@@ -19,11 +19,14 @@ user_blacklist = [
 ]
 
 
+'''
+# Come back later
 @discord_charting.route('/bootlistener', methods=['POST', 'OPTIONS'])
 def boot_listener():
     now_playing = request.form['song']
     BootListener(now_playing)
     return Response('SUCCESS')
+'''
 
 
 @discord_charting.route('/', methods=['GET'])
