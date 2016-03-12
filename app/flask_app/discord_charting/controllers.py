@@ -468,9 +468,10 @@ def game_time_breakdown(user=None):
         config.GAMES_TABLE.c.name,
         func.sec_to_time(
             func.sum(
-                func.timediff(
-                    config.STATS_TABLE.c.endTime,
-                    config.STATS_TABLE.c.startTime
+                func.timestampdiff(
+                    text('SECOND'),
+                    config.STATS_TABLE.c.startTime,
+                    config.STATS_TABLE.c.endTime
                 )
             )
         ).label('time_played'),
