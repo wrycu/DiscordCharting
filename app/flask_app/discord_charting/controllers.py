@@ -7,7 +7,7 @@ from sqlalchemy import text
 import datetime
 
 from app import config
-from scripts.boot_listener import BootListener
+#from scripts.boot_listener import BootListener
 
 discord_charting = Blueprint(
     'discord_charting',
