@@ -9,7 +9,7 @@ CSRF_ENABLED = True
 CSRF_SESSION_KEY = "TOP_SECRET"
 SECRET_KEY = "ANOTHER_SECRET"
 config = ConfigParser()
-config.read(os.path.join('..', 'config.ini'))
+config.read(os.path.join(BASE_DIR, '..', 'config.ini'))
 conf = {
     'mysql': {
         'user': config.get('mysql', 'user'),
