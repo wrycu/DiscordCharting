@@ -1,0 +1,35 @@
+{% from '_formhelper.html' import render_game_list, render_stats %}
+
+<div class="ui two column internally celled grid">
+    <div class="row centered">
+        {{ render_stats(130, 31200, 22) }}
+    </div>
+    <div class="row">
+        <div class="center aligned column">
+            User A plays the most shared games!
+        </div>
+        <div class="center aligned column">
+            User B plays the least shared games!
+        </div>
+    </div>
+    <div class="row">
+        {{ render_game_list(current_games) }}
+    </div>
+    <div class="row">
+        <div class="column">
+            <div id="top_games_by_play_time">
+                Bar graph of top game by hours player
+            </div>
+        </div>
+        <div class="column">
+            <div id="top_games_by_user_count">
+                Bar graph of top game by players
+            </div>
+        </div>
+    </div>
+    <div class="row centered">
+            <div id="">
+                Bar graph of hourly activity
+            </div>
+    </div>
+</div>
