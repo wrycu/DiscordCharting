@@ -8,7 +8,6 @@ import os
 
 client = discord.Client()
 
-
 @client.event
 async def on_ready():
     # TODO: migrate the background_task code to a function so we can call from here or there
