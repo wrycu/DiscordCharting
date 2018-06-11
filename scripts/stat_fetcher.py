@@ -92,4 +92,3 @@ finally:
 
 # Comment the loop stuff above and uncomment this to instead run a one-time update
 #client.run(conf['discord']['email'], conf['discord']['pass'])
-
